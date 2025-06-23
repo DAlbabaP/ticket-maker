@@ -195,13 +195,22 @@ class TicketGenerator:
             except Exception as e:
                 # Если совсем ничего не работает - пропускаем
                 pass
-        
-        # Заголовок - полный тип питания и дата
+          # Заголовок - полный тип питания и дата
         header_text = f"{ticket['meal_time']} {ticket['date']}"
         safe_draw_string(c, x + padding, y + height - 4 * mm, header_text, 'Helvetica-Bold', 6)
         
-        # Имя - полное без сокращений
-        safe_draw_string(c, x + padding, y + height - 8 * mm, ticket['name'], 'Helvetica-Bold', 5)
+        # Имя - сокращенное для экономии места
+        name = ticket['name']
+        # Сокращаем ФИО до фамилии и инициалов
+        words = name.split()
+        if len(words) >= 3:
+            short_name = f"{words[0]} {words[1][0]}.{words[2][0]}."
+        elif len(words) >= 2:
+            short_name = f"{words[0]} {words[1][0]}."
+        else:
+            short_name = words[0] if words else name
+            
+        safe_draw_string(c, x + padding, y + height - 8 * mm, short_name, 'Helvetica-Bold', 5)
         
         # Меню - полное название
         safe_draw_string(c, x + padding, y + height - 12 * mm, ticket['meal_type'], 'Helvetica', 5)
