@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор талонов на питание</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #ecf0f1;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content-section {
+            padding: 2rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 1.2rem;
+        }
+        
+        .card-header i {
+            margin-right: 0.5rem;
+        }
+        
+        .role-settings {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 12px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--accent-color);
+            transition: all 0.3s ease;
+        }
+        
+        .role-settings:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .role-settings h6 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, var(--secondary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            border: none;
+        }
+        
+        .btn-outline-secondary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline-secondary:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #d5f4e6, #a8e6cf);
+            color: var(--primary-color);
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            color: var(--primary-color);
+        }
+        
+        .example-text {
+            background: linear-gradient(135deg, #ddd6fe, #e0e7ff);
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .spinner-border {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+        
+        textarea {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            line-height: 1.6;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .empty-roles {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="main-container">
+            <!-- Заголовок -->
+            <div class="header-section">
+                <h1><i class="fas fa-ticket-alt"></i> Генератор талонов на питание</h1>
+                <p>Создание компактных талонов для обеда и ужина с красивым дизайном</p>
+            </div>
+
+            <!-- Основной контент -->
+            <div class="content-section">
+                <form id="ticketForm">
+                    <div class="row">
+                        <!-- Левая колонка -->
+                        <div class="col-lg-8">
+                            <!-- Дата -->
+                            <div class="card mb-4 fade-in">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Дата талонов</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label for="date" class="form-label fw-bold">Выберите дату:</label>
+                                            <input type="date" class="form-control" id="date" name="date" value="{{ today }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Данные людей -->
+                            <div class="card mb-4 fade-in">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-users"></i> Данные людей</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="textData" class="form-label fw-bold">Введите данные в формате:</label>
+                                        <textarea class="form-control" id="textData" name="textData" rows="15" required 
+                                                  placeholder="Введите данные в указанном формате...">[РУКОВОДСТВО]
+Иванов Иван Иванович
+Петров Петр Петрович
+[СОТРУДНИКИ]
+Сидоров Сидор Сидорович
+Козлов Козлов Козлович
+[ГОСТИ]
+Гостев Гость Гостевич</textarea>
+                                    </div>
+                                    <div class="example-text">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Формат данных:</strong><br>
+                                        • Роли указываются в квадратных скобках: <code>[РОЛЬ]</code><br>
+                                        • После каждой роли перечисляются ФИО людей<br>
+                                        • Каждое ФИО на новой строке<br>
+                                        • При изменении данных настройки ролей обновятся автоматически
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Правая колонка -->
+                        <div class="col-lg-4">
+                            <!-- Настройки ролей -->
+                            <div class="card mb-4 fade-in">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-cogs"></i> Настройки питания</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="roleSettings">
+                                        <div class="empty-roles">
+                                            <i class="fas fa-user-plus fa-3x mb-3 text-muted"></i>
+                                            <p>Введите данные слева, и здесь появятся настройки для каждой роли</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Кнопки -->
+                            <div class="card fade-in">
+                                <div class="card-body text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 mb-3 pulse" id="generateBtn">
+                                        <span class="loading spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        <i class="fas fa-magic me-2"></i>Создать талоны
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary w-100" onclick="clearForm()">
+                                        <i class="fas fa-trash me-2"></i>Очистить форму
+                                    </button>                                    <div class="mt-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-file-pdf me-1"></i>
+                                            70 компактных талонов на лист A4
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Результат -->
+                <div id="result" class="mt-4" style="display: none;">
+                    <div class="alert alert-success fade-in">
+                        <h5><i class="fas fa-check-circle me-2"></i>Талоны успешно созданы!</h5>
+                        <p id="resultText" class="mb-3"></p>
+                        <a id="downloadLink" class="btn btn-success" href="#" download>
+                            <i class="fas fa-download me-2"></i>Скачать PDF
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Ошибки -->
+                <div id="error" class="mt-4" style="display: none;">
+                    <div class="alert alert-danger fade-in">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Ошибка</h5>
+                        <p id="errorText"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentRoles = [];
+        
+        function clearForm() {
+            document.getElementById('textData').value = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            updateRoleSettings([]);
+        }
+
+        function showLoading(show) {
+            const btn = document.getElementById('generateBtn');
+            const loading = btn.querySelector('.loading');
+            if (show) {
+                loading.style.display = 'inline-block';
+                btn.disabled = true;
+                btn.classList.remove('pulse');
+            } else {
+                loading.style.display = 'none';
+                btn.disabled = false;
+                btn.classList.add('pulse');
+            }
+        }
+
+        function showResult(ticketsCount, downloadUrl) {
+            document.getElementById('resultText').innerHTML = `
+                <i class="fas fa-file-pdf me-2"></i>Создано <strong>${ticketsCount}</strong> талонов
+                <br><small class="text-muted">Готово к печати в формате A4</small>
+            `;
+            document.getElementById('downloadLink').href = downloadUrl;
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            
+            // Скролл к результату
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            document.getElementById('errorText').textContent = message;
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            // Скролл к ошибке
+            document.getElementById('error').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateRoleSettings(roles) {
+            const container = document.getElementById('roleSettings');
+            
+            if (roles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-roles">
+                        <i class="fas fa-user-plus fa-3x mb-3 text-muted"></i>
+                        <p>Введите данные слева, и здесь появятся настройки для каждой роли</p>
+                    </div>
+                `;
+                currentRoles = [];
+                return;
+            }
+            
+            // Сохраняем текущие настройки
+            const currentSettings = {};
+            currentRoles.forEach(role => {
+                const lunchEl = document.getElementById(`${role}_lunch`);
+                const dinnerEl = document.getElementById(`${role}_dinner`);
+                const mealEl = document.getElementById(`${role}_meal`);
+                
+                if (lunchEl && dinnerEl && mealEl) {
+                    currentSettings[role] = {
+                        lunch: lunchEl.checked,
+                        dinner: dinnerEl.checked,
+                        meal: mealEl.value
+                    };
+                }
+            });
+            
+            // Создаем новые настройки
+            container.innerHTML = '';
+            
+            roles.forEach((role, index) => {
+                // Настройки по умолчанию для разных ролей
+                let defaultSettings = {
+                    lunch: true,
+                    dinner: true,
+                    meal: 'Салат + Горячее'
+                };
+                
+                // Специальные настройки для некоторых ролей
+                if (role.includes('ГОСТ') || role.includes('GUEST')) {
+                    defaultSettings.dinner = false;
+                    defaultSettings.meal = 'Только салат';
+                } else if (role.includes('РУКОВОД') || role.includes('ДИРЕКТОР') || role.includes('УПРАВ')) {
+                    defaultSettings.meal = 'Салат + Горячее';
+                }
+                
+                // Используем сохраненные настройки если есть
+                const settings = currentSettings[role] || defaultSettings;
+                
+                const roleHtml = `
+                    <div class="role-settings fade-in" style="animation-delay: ${index * 0.1}s">
+                        <h6><i class="fas fa-user-tag me-2"></i>${role}</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="${role}_lunch" ${settings.lunch ? 'checked' : ''}>
+                                    <label class="form-check-label" for="${role}_lunch">
+                                        <i class="fas fa-sun me-1"></i>Обед
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="${role}_dinner" ${settings.dinner ? 'checked' : ''}>
+                                    <label class="form-check-label" for="${role}_dinner">
+                                        <i class="fas fa-moon me-1"></i>Ужин
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="${role}_meal" class="form-label fw-bold">
+                                <i class="fas fa-utensils me-1"></i>Что подается:
+                            </label>
+                            <select class="form-select form-select-sm" id="${role}_meal">
+                                <option value="Только салат" ${settings.meal === 'Только салат' ? 'selected' : ''}>🥗 Только салат</option>
+                                <option value="Только горячее" ${settings.meal === 'Только горячее' ? 'selected' : ''}>🍲 Только горячее</option>
+                                <option value="Салат + Горячее" ${settings.meal === 'Салат + Горячее' ? 'selected' : ''}>🥗🍲 Салат + Горячее</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += roleHtml;
+            });
+            
+            currentRoles = roles;
+        }
+
+        function getRoleSettings() {
+            const settings = {};
+            
+            currentRoles.forEach(role => {
+                const lunchEl = document.getElementById(`${role}_lunch`);
+                const dinnerEl = document.getElementById(`${role}_dinner`);
+                const mealEl = document.getElementById(`${role}_meal`);
+                
+                if (lunchEl && dinnerEl && mealEl) {
+                    settings[role] = {
+                        lunch: lunchEl.checked,
+                        dinner: dinnerEl.checked,
+                        meal_type: mealEl.value
+                    };
+                }
+            });
+            
+            return settings;
+        }
+
+        async function updateRolesFromText() {
+            const textData = document.getElementById('textData').value;
+            
+            if (!textData.trim()) {
+                updateRoleSettings([]);
+                return;
+            }
+            
+            try {
+                const response = await fetch('/get-roles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text_data: textData })
+                });
+                
+                const data = await response.json();
+                
+                if (data.roles) {
+                    updateRoleSettings(data.roles);
+                } else if (data.error) {
+                    console.warn('Ошибка парсинга ролей:', data.error);
+                    updateRoleSettings([]);
+                }
+            } catch (error) {
+                console.warn('Ошибка получения ролей:', error);
+                updateRoleSettings([]);
+            }
+        }
+
+        // Обновляем роли при изменении текста с задержкой
+        let updateTimeout;
+        document.getElementById('textData').addEventListener('input', function() {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(updateRolesFromText, 500);
+        });
+
+        document.getElementById('ticketForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            showLoading(true);
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            const formData = {
+                text_data: document.getElementById('textData').value,
+                date: document.getElementById('date').value,
+                role_settings: getRoleSettings()
+            };
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(data.tickets_count, data.download_url);
+                } else {
+                    showError(data.error || 'Произошла ошибка');
+                }
+            } catch (error) {
+                showError('Ошибка связи с сервером: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Инициализация ролей при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRolesFromText();
+        });
+    </script>
+</body>
+</html>
