@@ -15,7 +15,7 @@ app.secret_key = 'ticket-generator-secret-key'
 # Регистрируем шрифт с поддержкой кириллицы при запуске приложения
 def register_fonts():
     try:
-        # Пытаемся использовать системные шрифты Windows
+        # Пытаемся использовать системные шрифты Windows (для локальной разработки)
         import platform
         if platform.system() == 'Windows':
             # Путь к системным шрифтам Windows
@@ -33,18 +33,29 @@ def register_fonts():
             except:
                 pass
         
-        # Fallback - используем встроенные шрифты ReportLab
+        # Fallback для хостинга - используем встроенные шрифты ReportLab с кириллицей
         try:
-            from reportlab.lib.fonts import addMapping
-            # Возвращаем None - будем использовать стандартные шрифты с обработкой ошибок
-            return None
+            from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+            pdfmetrics.registerFont(UnicodeCIDFont('HeiseiMin-W3'))
+            return 'HeiseiMin-W3'
         except:
-            return None
+            pass
+            
+        try:
+            from reportlab.pdfbase.cidfonts import UnicodeCIDFont  
+            pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))
+            return 'HeiseiKakuGo-W5'
+        except:
+            pass
+        
+        # Последний fallback - стандартные шрифты
+        return None
     except:
         return None
 
 # Регистрируем шрифт при загрузке модуля
 UNICODE_FONT = register_fonts()
+print(f"Используемый шрифт: {UNICODE_FONT if UNICODE_FONT else 'Стандартный Helvetica с транслитерацией'}")
 
 class TicketGenerator:
     @staticmethod
@@ -157,23 +168,33 @@ class TicketGenerator:
         
         # Минимальные отступы
         padding = 1 * mm
-        
-        # Функция для безопасного вывода текста
+          # Функция для безопасного вывода текста
         def safe_draw_string(canvas, x_pos, y_pos, text, font_name, font_size):
             try:
                 if UNICODE_FONT:
                     canvas.setFont(UNICODE_FONT, font_size)
-                else:
-                    canvas.setFont(font_name, font_size)
-                canvas.drawString(x_pos, y_pos, text)
+                    canvas.drawString(x_pos, y_pos, text)
+                    return
             except Exception as e:
-                try:
-                    canvas.setFont('Helvetica', font_size)
-                    transliterated = TicketGenerator.transliterate(text)
-                    canvas.drawString(x_pos, y_pos, transliterated)
-                except:
-                    ascii_text = ''.join(char if ord(char) < 128 else '?' for char in text)
-                    canvas.drawString(x_pos, y_pos, ascii_text)
+                pass
+            
+            # Пробуем стандартные шрифты с транслитерацией
+            try:
+                canvas.setFont('Helvetica', font_size)
+                transliterated = TicketGenerator.transliterate(text)
+                canvas.drawString(x_pos, y_pos, transliterated)
+                return
+            except Exception as e:
+                pass
+            
+            # Последний шанс - только ASCII символы
+            try:
+                canvas.setFont('Helvetica', font_size)
+                ascii_text = ''.join(char if ord(char) < 128 else '?' for char in text)
+                canvas.drawString(x_pos, y_pos, ascii_text)
+            except Exception as e:
+                # Если совсем ничего не работает - пропускаем
+                pass
         
         # Заголовок - полный тип питания и дата
         header_text = f"{ticket['meal_time']} {ticket['date']}"
@@ -184,23 +205,25 @@ class TicketGenerator:
         
         # Меню - полное название
         safe_draw_string(c, x + padding, y + height - 12 * mm, ticket['meal_type'], 'Helvetica', 5)
-        
-        # Роль - полное название
+          # Роль - полное название
         safe_draw_string(c, x + padding, y + height - 16 * mm, ticket['role'], 'Helvetica', 4)
+    
     @staticmethod
     def transliterate(text):
         """Транслитерация русского текста в латиницу (fallback)"""
         translit_dict = {
-            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
-            'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+            'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm',
             'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-            'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
-            'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
-            'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'YO',
-            'Ж': 'ZH', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
+            'ф': 'f', 'х': 'h', 'ц': 'c', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+            'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'ju', 'я': 'ja',
+            'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'E',
+            'Ж': 'ZH', 'З': 'Z', 'И': 'I', 'Й': 'J', 'К': 'K', 'Л': 'L', 'М': 'M',
             'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
-            'Ф': 'F', 'Х': 'H', 'Ц': 'TS', 'Ч': 'CH', 'Ш': 'SH', 'Щ': 'SCH',
-            'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'YU', 'Я': 'YA'
+            'Ф': 'F', 'Х': 'H', 'Ц': 'C', 'Ч': 'CH', 'Ш': 'SH', 'Щ': 'SCH',
+            'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'JU', 'Я': 'JA',
+            # Дополнительные символы
+            '№': 'No', '—': '-', '–': '-', '"': '"', '"': '"', '«': '"', '»': '"'
         }
         
         result = ''
